@@ -1,8 +1,8 @@
 {
   "name": "nano-ethereum-signer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Very small Ethereum signer and verifier",
-  "main": "src/main.min.js",
+  "main": "main.min.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
