@@ -2,7 +2,7 @@ const ethsig = require(".");
 
 var message      = "Hello!";
 var private_key  = "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-var address      = ethsig.addressFromKey(private_key).address;
+var address      = ethsig.addressFromKey(private_key);
 var message_hash = ethsig.keccak(message);
 var signature    = ethsig.signMessage(message, private_key);
 var signer       = ethsig.signerAddress(message, signature);

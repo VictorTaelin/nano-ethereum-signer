@@ -3648,10 +3648,7 @@ const lib_account = lib(() => {
     const publicKey = "0x" + ecKey.getPublic(false, 'hex').slice(2);
     const publicHash = keccak256(publicKey);
     const address = addressChecksum("0x" + publicHash.slice(-40));
-    return {
-      address: address,
-      privateKey: privateKey
-    };
+    return address;
   };
 
   const encodeSignature = ([v, r, s]) => Bytes.flatten([r, s, v]);
@@ -4927,7 +4924,8 @@ const lib_signature = lib(() => {
 });
 
 var acc = lib_account();
-module.exports = {
-  ...lib_account(),
-  keccak: lib_keccak().keccak256,
-};
+module["exports"]["addressChecksum"] = acc.addressChecksum;
+module["exports"]["addressFromKey"] = acc.addressFromKey;
+module["exports"]["signMessage"] = acc.signMessage;
+module["exports"]["signerAddress"] = acc.signerAddress;
+module["exports"]["keccak"] = lib_keccak().keccak256;
