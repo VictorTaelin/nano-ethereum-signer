@@ -1,0 +1,26 @@
+{
+  "name": "nano-ethereum-signer",
+  "version": "0.1.0",
+  "description": "Very small Ethereum signer and verifier",
+  "main": "src/main.min.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maiavictor/nano-ethereum-account.git"
+  },
+  "keywords": [
+    "ethereum",
+    "blockchain",
+    "signature",
+    "ecdsa",
+    "crypto"
+  ],
+  "author": "Victor Maia",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/maiavictor/nano-ethereum-account/issues"
+  },
+  "homepage": "https://github.com/maiavictor/nano-ethereum-account#readme"
+}
