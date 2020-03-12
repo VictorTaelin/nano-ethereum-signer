@@ -47,3 +47,8 @@ Here, `Hex` is a string on the format `"0x1234abcd..."`.
 Private keys and hashes have 256 bits (64 hex digits).
 Addresses have 160 bits (40 hex digits). Signatures have 520
 bits (130 hex digits).
+
+Disclaimer
+----------
+
+This is still a WIP: it needs test cases and a LICENSE, and there are still improvements to be made. If possible, we should compile a C implementation with WASM instead. If anyone is willing to start such a project I'd be glad to contribute.
