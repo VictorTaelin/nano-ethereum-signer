@@ -25,7 +25,7 @@ const lib_inherits = lib(() => {
 const lib_BN = lib(() => {
 'use strict';
 
-var exports = {};
+let exports = {};
 let assert = lib_utils().assert;
 let inherits = lib_inherits()
 
@@ -2441,8 +2441,6 @@ const lib_utils = lib(() => {
   //lib_utils_a
   const getNAF = (num, w, bits) => {
     const naf = new Array(Math.max(num.bitLength(), bits) + 1).fill(0);
-    // var naf = new Array(Math.max(num.bitLength(), bits) + 1);
-    // naf.fill(0);
 
     const ws = 1 << (w + 1);
     const k = num.clone();
@@ -2593,8 +2591,8 @@ const lib_buffer = lib(() => {
     if (length > strLen / 2) {
       length = strLen / 2;
     }
-    for (var i = 0; i < length; ++i) {
-      var parsed = parseInt(string.substr(i * 2, 2), 16);
+    for (let i = 0; i < length; ++i) {
+      const parsed = parseInt(string.substr(i * 2, 2), 16);
       if (isNaN(parsed)) return i;
       buf[offset + i] = parsed;
     }
@@ -2704,7 +2702,7 @@ const lib_hash_common = lib(() => {
     // Append length
     len <<= 3;
     if (this.endian === 'big') {
-      for (var t = 8; t < this.padLength; t++)
+      for (let t = 8; t < this.padLength; t++)
         res[i++] = 0;
 
       res[i++] = 0;
@@ -2725,7 +2723,7 @@ const lib_hash_common = lib(() => {
       res[i++] = 0;
       res[i++] = 0;
 
-      for (t = 8; t < this.padLength; t++)
+      for (let t = 8; t < this.padLength; t++)
         res[i++] = 0;
     }
 
@@ -3117,7 +3115,7 @@ const lib_base = lib(() => {
     const repr = [];
     for (let j = 0; j < naf.length; j += doubles.step) {
       let nafW = 0;
-      for (var K = j + doubles.step - 1; k >= j; k--)
+      for (let K = j + doubles.step - 1; k >= j; k--)
         nafW = (nafW << 1) + naf[K];
       repr.push(nafW);
     }
@@ -3360,7 +3358,7 @@ const lib_curves = lib(() => {
       configurable: true,
       enumerable: true,
       get: function() {
-        var curve = new PresetCurve(options);
+        const curve = new PresetCurve(options);
         Object.defineProperty(curves, name, {
           configurable: true,
           enumerable: true,
@@ -3418,7 +3416,7 @@ const lib_hash = lib(() => {
 });
 
 const lib_account = lib(() => {
-  var exports = {};
+  let exports = {};
 
   /* WEBPACK VAR INJECTION */(function(Buffer) {
   const Bytes = lib_utils();
@@ -3493,9 +3491,9 @@ const lib_account = lib(() => {
 const lib_sha_common = lib(() => {
   "use strict";
 
-  var exports = {};
-  var utils = lib_utils();
-  var rotr32 = utils.rotr32;
+  let exports = {};
+  const utils = lib_utils();
+  const rotr32 = utils.rotr32;
 
   function ch32(x, y, z) {
     return (x & y) ^ ((~x) & z);
@@ -3544,7 +3542,7 @@ const lib_sha = lib(() => {
         shaCommon.maj32, shaCommon.s0_256, shaCommon.s1_256, shaCommon.g0_256,
         shaCommon.g1_256, common.BlockHash];
 
-  var sha256_K = [
+  const sha256_K = [
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
     0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
     0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -4399,7 +4397,7 @@ const lib_hmac_drgb = lib(() => {
 
     this.K = new Array(this.outLen / 8);
     this.V = new Array(this.outLen / 8);
-    for (var i = 0; i < this.V.length; i++) {
+    for (let i = 0; i < this.V.length; i++) {
       this.K[i] = 0x00;
       this.V[i] = 0x01;
     }
@@ -4528,8 +4526,8 @@ const lib_signature = lib(() => {
   "use strict";
 
   let exports = {};
-  var BN = lib_BN();
-  var utils = lib_utils();
+  const BN = lib_BN();
+  const utils = lib_utils();
 
   function Signature(options, enc) {
     if (options instanceof Signature)
