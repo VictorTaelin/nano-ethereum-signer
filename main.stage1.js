@@ -2596,7 +2596,7 @@ const lib_buffer = lib(() => {
       if (isNaN(parsed)) return i;
       buf[offset + i] = parsed;
     }
-    return i;
+    return length;
   }
   const byteLength = (string, encoding) => string.length >>> 1;
   const from = (that, value, encodingOrOffset, length) => fromString(that, value, encodingOrOffset);
