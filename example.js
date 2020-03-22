@@ -1,4 +1,6 @@
-const ethsig = require(".");
+// const ethsig = require(".");
+// const ethsig = require("./main.stage0");
+const ethsig = require("./main.stage1");
 
 var message      = "Hello!";
 var private_key  = "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
