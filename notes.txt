@@ -1,0 +1,12 @@
+First things first, massive kudos to Victor Maia for the original work
+
+Secondly. I'm taking this refactoring exercise as source material for a web3 version of the guilded rose :-)
+
+objective stage 0 :
+- merge all lib_utils_* and lib_bytes, lib_assert - done
+
+objective stage 1
+- remove unused / dead code -> done
+- clean up Buffer lib TYPED_ARRAY_SUPPORT always true -> done
+- refactor to es6+ standards -> in progrss ...or code golf is a standard now?
+
