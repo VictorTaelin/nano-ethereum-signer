@@ -8,4 +8,8 @@ objective stage 0 :
 objective stage 1
 - remove unused / dead code -> done
 - clean up Buffer lib TYPED_ARRAY_SUPPORT always true -> done
-- refactor to es6+ standards -> in progrss ...or code golf is a standard now?
+- refactor to es6+ standards -> stage 1 finished
+
+23/03/2019
+original minified version size: 52Kb
+current minified version  size: 49Kb
