@@ -2385,12 +2385,12 @@ const lib_utils = lib(() => {
       for (let i = 0; i < sanitizedMsg.length; i += 2)
         res.push(parseInt(sanitizedMsg[i] + sanitizedMsg[i + 1], 16));
     } else {
-      for (let i = 0; i < msg.length; i++) {
+      [...msg].forEach((e, i) => {
         const c = msg.charCodeAt(i);
         const hi = c >> 8;
         const lo = c & 0xff;
         hi ? res.push(hi, lo) : res.push(lo);
-      }
+      })
     }
     return res;
   }
@@ -2406,11 +2406,9 @@ const lib_utils = lib(() => {
 
     const res = new Array(len / 4);
     for (let i = 0, k = start; i < res.length; i++, k += 4) {
-      let w;
-      if (endian === 'big')
-        w = (msg[k] << 24) | (msg[k + 1] << 16) | (msg[k + 2] << 8) | msg[k + 3];
-      else
-        w = (msg[k + 3] << 24) | (msg[k + 2] << 16) | (msg[k + 1] << 8) | msg[k];
+      const w = (endian === 'big')
+              ? (msg[k] << 24) | (msg[k + 1] << 16) | (msg[k + 2] << 8) | msg[k + 3]
+              : (msg[k + 3] << 24) | (msg[k + 2] << 16) | (msg[k + 1] << 8) | msg[k];
       res[i] = w >>> 0;
     }
     return res;
@@ -2441,18 +2439,14 @@ const lib_utils = lib(() => {
   //lib_utils_a
   const getNAF = (num, w, bits) => {
     const naf = new Array(Math.max(num.bitLength(), bits) + 1).fill(0);
-
     const ws = 1 << (w + 1);
     const k = num.clone();
 
-    for (let i = 0; i < naf.length; i++) {
+    naf.forEach((e,i) => {
       let z;
       const mod = k.andln(ws - 1);
       if (k.isOdd()) {
-        if (mod > (ws >> 1) - 1)
-          z = (ws >> 1) - mod;
-        else
-          z = mod;
+        (mod > (ws >> 1) - 1) ? z = (ws >> 1) - mod : z = mod;
         k.isubn(z);
       } else {
         z = 0;
@@ -2460,7 +2454,7 @@ const lib_utils = lib(() => {
 
       naf[i] = z;
       k.iushrn(1);
-    }
+    })
     return naf;
   }
 
@@ -2477,19 +2471,14 @@ const lib_utils = lib(() => {
       // First phase
       let m14 = (k1.andln(3) + d1) & 3;
       let m24 = (k2.andln(3) + d2) & 3;
-      if (m14 === 3)
-        m14 = -1;
-      if (m24 === 3)
-        m24 = -1;
+      if (m14 === 3) m14 = -1;
+      if (m24 === 3) m24 = -1;
       let u1;
       if ((m14 & 1) === 0) {
         u1 = 0;
       } else {
         let m8 = (k1.andln(7) + d1) & 7;
-        if ((m8 === 3 || m8 === 5) && m24 === 2)
-          u1 = -m14;
-        else
-          u1 = m14;
+        ((m8 === 3 || m8 === 5) && m24 === 2) ? u1 = -m14 : u1 = m14;
       }
       jsf[0].push(u1);
 
@@ -2498,20 +2487,16 @@ const lib_utils = lib(() => {
         u2 = 0;
       } else {
         let m8 = (k2.andln(7) + d2) & 7;
-        if ((m8 === 3 || m8 === 5) && m14 === 2)
-          u2 = -m24;
-        else
-          u2 = m24;
+        ((m8 === 3 || m8 === 5) && m14 === 2) ?  u2 = -m24 : u2 = m24;
       }
       jsf[1].push(u2);
 
       // Second phase
-      if (2 * d1 === u1 + 1)
-        d1 = 1 - d1;
-      if (2 * d2 === u2 + 1)
-        d2 = 1 - d2;
+      if (2 * d1 === u1 + 1) d1 = 1 - d1;
+      if (2 * d2 === u2 + 1) d2 = 1 - d2;
       k1.iushrn(1);
       k2.iushrn(1);
+
     }
     return jsf;
   }
@@ -2563,7 +2548,7 @@ const lib_buffer = lib(() => {
     that = new Uint8Array(length);
     that.__proto__ = Buffer.prototype;
     return that;
-  }
+  };
   const fromString = (that, string, encoding) => {
     const length = byteLength(string, encoding) | 0
     that = createBuffer(that, length)
@@ -2572,7 +2557,7 @@ const lib_buffer = lib(() => {
       that = that.slice(0, actual)
     }
     return that
-  }
+  };
   const hexWrite = (buf, string, offset, length) => {
     offset = Number(offset) || 0
     const remaining = buf.length - offset
@@ -2588,16 +2573,15 @@ const lib_buffer = lib(() => {
     const strLen = string.length;
     if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
 
-    if (length > strLen / 2) {
-      length = strLen / 2;
-    }
+    if (length > strLen / 2) length = strLen / 2;
+
     for (let i = 0; i < length; ++i) {
       const parsed = parseInt(string.substr(i * 2, 2), 16);
       if (isNaN(parsed)) return i;
       buf[offset + i] = parsed;
     }
     return length;
-  }
+  };
   const byteLength = (string, encoding) => string.length >>> 1;
   const from = (that, value, encodingOrOffset, length) => fromString(that, value, encodingOrOffset);
   exports.Buffer = Buffer;
@@ -2661,10 +2645,7 @@ const lib_hash_common = lib(() => {
   BlockHash.prototype.update = function update(msg, enc) {
     // Convert message to array, pad it, and join into 32bit blocks
     msg = utils.toArray(msg, enc);
-    if (!this.pending)
-      this.pending = msg;
-    else
-      this.pending = this.pending.concat(msg);
+    this.pending = (!this.pending) ? this.pending = msg : this.pending.concat(msg);
     this.pendingTotal += msg.length;
 
     // Enough data, try updating
@@ -2696,40 +2677,40 @@ const lib_hash_common = lib(() => {
     const bytes = this._delta8;
     const k = bytes - ((len + this.padLength) % bytes);
     const res = new Array(k + this.padLength);
-    res[0] = 0x80;
-    for (var i = 1; i < k; i++) res[i] = 0;   //refactor uses var i hoisting. i tracks lenght of res arr iirc
+    let pointer = 0;
+
+    res[pointer] = 0x80;
+    while(pointer < k) {
+      res[pointer] = 0;
+      pointer++;
+    }
 
     // Append length
     len <<= 3;
     if (this.endian === 'big') {
-      for (let t = 8; t < this.padLength; t++)
-        res[i++] = 0;
-
-      res[i++] = 0;
-      res[i++] = 0;
-      res[i++] = 0;
-      res[i++] = 0;
-      res[i++] = (len >>> 24) & 0xff;
-      res[i++] = (len >>> 16) & 0xff;
-      res[i++] = (len >>> 8) & 0xff;
-      res[i++] = len & 0xff;
+      for (let t = 8; t < this.padLength; t++) res[pointer++] = 0;
+      res[pointer++] = 0;
+      res[pointer++] = 0;
+      res[pointer++] = 0;
+      res[pointer++] = 0;
+      res[pointer++] = (len >>> 24) & 0xff;
+      res[pointer++] = (len >>> 16) & 0xff;
+      res[pointer++] = (len >>> 8) & 0xff;
+      res[pointer++] = len & 0xff;
     } else {
-      res[i++] = len & 0xff;
-      res[i++] = (len >>> 8) & 0xff;
-      res[i++] = (len >>> 16) & 0xff;
-      res[i++] = (len >>> 24) & 0xff;
-      res[i++] = 0;
-      res[i++] = 0;
-      res[i++] = 0;
-      res[i++] = 0;
-
-      for (let t = 8; t < this.padLength; t++)
-        res[i++] = 0;
+      res[pointer++] = len & 0xff;
+      res[pointer++] = (len >>> 8) & 0xff;
+      res[pointer++] = (len >>> 16) & 0xff;
+      res[pointer++] = (len >>> 24) & 0xff;
+      res[pointer++] = 0;
+      res[pointer++] = 0;
+      res[pointer++] = 0;
+      res[pointer++] = 0;
+      for (let t = 8; t < this.padLength; t++) res[pointer++] = 0;
     }
 
     return res;
-    };
-
+  };
 
   return exports;
 });
@@ -2757,9 +2738,8 @@ const lib_keccak = lib(() => {
     s: (s => [].concat(s, s, s, s, s))([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) //refactor? creates arr len 50 fill 0s in a '=> notiation' iife
   });
   const update = (state, message) => {
-    let [length, blocks, byteCount, blockCount, outputBlocks, s, index, lastByteIndex, code
-          ] = [message.length, state.blocks, state.blockCount << 2, state.blockCount,
-          state.outputBlocks,  state.s, 0, 0, 0];
+    let [length, blocks, byteCount, blockCount, outputBlocks, s, index, lastByteIndex, code] = [
+        message.length, state.blocks, state.blockCount << 2, state.blockCount, state.outputBlocks, state.s, 0, 0, 0];
 
     // update
     while (index < length) {
@@ -3125,10 +3105,7 @@ const lib_base = lib(() => {
     for (let i = I; i > 0; i--) {
       for (let j = 0; j < repr.length; j++) {
         const nafW = repr[j];
-        if (nafW === i)
-          b = b.mixedAdd(doubles.points[j]);
-        else if (nafW === -i)
-          b = b.mixedAdd(doubles.points[j].neg());
+        b = (nafW === i) ? b.mixedAdd(doubles.points[j]) : b.mixedAdd(doubles.points[j].neg());
       }
       a = a.add(b);
     }
@@ -3155,8 +3132,6 @@ const lib_base = lib(() => {
       if (wndWidth[a] !== 1 || wndWidth[b] !== 1) {
         naf[a] = utils.getNAF(coeffs[a], wndWidth[a], this._bitLength);
         naf[b] = utils.getNAF(coeffs[b], wndWidth[b], this._bitLength);
-        // max = Math.max(naf[a].length, max);
-        // max = Math.max(naf[b].length, max);
         max = Math.max(naf[a].length, naf[b].length, max);
         continue;
       }
@@ -3212,19 +3187,15 @@ const lib_base = lib(() => {
         let zero = true;
         for (let j = 0; j < len; j++) {
           tmp[j] = naf[j][i] | 0;
-          if (tmp[j] !== 0)
-            zero = false;
+          if (tmp[j] !== 0) zero = false;
         }
-        if (!zero)
-          break;
+        if (!zero) break;
         k++;
         i--;
       }
-      if (i >= 0)
-        k++;
+      if (i >= 0) k++;
       acc = acc.dblp(k);
-      if (i < 0)
-        break;
+      if (i < 0) break;
 
       for (let j = 0; j < len; j++) {
         let z = tmp[j];
@@ -3236,19 +3207,13 @@ const lib_base = lib(() => {
         else if (z < 0)
           p = wnd[j][(-z - 1) >> 1].neg();
 
-        if (p.type === 'affine')
-          acc = acc.mixedAdd(p);
-        else
-          acc = acc.add(p);
+        acc = (p.type === 'affine') ? acc.mixedAdd(p) : acc = acc.add(p)
       }
     }
     // Zeroify references
     wnd.fill(null, 0, len);
 
-    if (jacobianResult)
-      return acc;
-    else
-      return acc.toP();
+    return (jacobianResult) ? acc : acc.toP();
   };
 
   function BasePoint(curve, type) {
@@ -3301,14 +3266,12 @@ const lib_base = lib(() => {
   };
 
   BasePoint.prototype._getDoubles = function _getDoubles(step, power) {
-    if (this.precomputed && this.precomputed.doubles)
-      return this.precomputed.doubles;
+    if (this.precomputed && this.precomputed.doubles) return this.precomputed.doubles;
 
     const doubles = [ this ];
     let acc = this;
     for (let i = 0; i < power; i += step) {
-      for (let j = 0; j < step; j++)
-        acc = acc.dbl();
+      for (let j = 0; j < step; j++) acc = acc.dbl();
       doubles.push(acc);
     }
     return {
@@ -3418,60 +3381,61 @@ const lib_hash = lib(() => {
 const lib_account = lib(() => {
   let exports = {};
 
-  /* WEBPACK VAR INJECTION */(function(Buffer) {
-  const Bytes = lib_utils();
-  const BN = lib_BN();
-  const elliptic = lib_elliptic();
-  const secp256k1 = new elliptic.ec("secp256k1"); // eslint-disable-line
-  const { keccak256 } = lib_keccak();
+  /* WEBPACK VAR INJECTION */
+  (function(Buffer) {
+    const Bytes = lib_utils();
+    const BN = lib_BN();
+    const elliptic = lib_elliptic();
+    const secp256k1 = new elliptic.ec("secp256k1"); // eslint-disable-line
+    const { keccak256 } = lib_keccak();
 
-  const Nat = {
-    fromString: str => {
-      const bn = "0x" + (str.slice(0, 2) === "0x"
-        ? new BN(str.slice(2), 16)
-        : new BN(str, 10)).toString("hex");
-      return bn === "0x0" ? "0x" : bn;
-    }
-  };
+    const Nat = {
+      fromString: str => {
+        const bn = "0x" + (str.slice(0, 2) === "0x"
+          ? new BN(str.slice(2), 16)
+          : new BN(str, 10)).toString("hex");
+        return bn === "0x0" ? "0x" : bn;
+      }
+    };
 
-  const addressChecksum = address => {
-    const addressHash = keccak256(address.slice(2));
-    let checksumAddress = "0x";
-    for (let i = 0; i < 40; i++)
-      checksumAddress += parseInt(addressHash[i + 2], 16) > 7
-        ? address[i + 2].toUpperCase()
-        : address[i + 2];
-    return checksumAddress;
-  };
+    const addressChecksum = address => {
+      const addressHash = keccak256(address.slice(2));
+      let checksumAddress = "0x";
+      for (let i = 0; i < 40; i++)
+        checksumAddress += parseInt(addressHash[i + 2], 16) > 7
+          ? address[i + 2].toUpperCase()
+          : address[i + 2];
+      return checksumAddress;
+    };
 
-  const addressFromKey = privateKey => {
-    const buffer = Buffer.from(privateKey.slice(2), "hex");
-    const ecKey = secp256k1.keyFromPrivate(buffer);
-    const publicKey = "0x" + ecKey.getPublic(false, 'hex').slice(2);
-    const publicHash = keccak256(publicKey);
-    const address = addressChecksum("0x" + publicHash.slice(-40));
-    return address;
-  };
+    const addressFromKey = privateKey => {
+      const buffer = Buffer.from(privateKey.slice(2), "hex");
+      const ecKey = secp256k1.keyFromPrivate(buffer);
+      const publicKey = "0x" + ecKey.getPublic(false, 'hex').slice(2);
+      const publicHash = keccak256(publicKey);
+      const address = addressChecksum("0x" + publicHash.slice(-40));
+      return address;
+    };
 
-  const encodeSignature = ([v, r, s]) => Bytes.flatten([r, s, v]);
-
-  const decodeSignature = hex => [Bytes.slice(64, Bytes.length(hex), hex), Bytes.slice(0, 32, hex), Bytes.slice(32, 64, hex)];
-
-  const signMessage = (hash, privateKey, addToV = 27) => {
-  const signature = secp256k1.keyFromPrivate(Buffer
-                                .from(privateKey.slice(2), "hex"))
-                                .sign(Buffer.from(hash.slice(2), "hex"),
-                                { canonical: true });
+    const encodeSignature = ([v, r, s]) => Bytes.flatten([r, s, v]);
+    const decodeSignature = hex => [Bytes.slice(64, Bytes.length(hex), hex),
+                                   Bytes.slice(0, 32, hex), Bytes.slice(32, 64, hex)];
+    const signMessage = (hash, privateKey, addToV = 27) => {
+    const signature = secp256k1.keyFromPrivate(Buffer
+                                  .from(privateKey.slice(2), "hex"))
+                                  .sign(Buffer.from(hash.slice(2), "hex"),
+                                  { canonical: true });
 
     return encodeSignature([Nat.fromString(Bytes.fromNumber(addToV + signature.recoveryParam)),
-                                Bytes.pad(32, Bytes.fromNat("0x" + signature.r.toString(16))),
-                                Bytes.pad(32, Bytes.fromNat("0x" + signature.s.toString(16)))]);
+                          Bytes.pad(32, Bytes.fromNat("0x" + signature.r.toString(16))),
+                          Bytes.pad(32, Bytes.fromNat("0x" + signature.s.toString(16)))]);
   };
 
   const signerAddress = (hash, signature) => {
     const vals = decodeSignature(signature);
     const vrs = { v: Bytes.toNumber(vals[0]), r: vals[1].slice(2), s: vals[2].slice(2) };
-    const ecPublicKey = secp256k1.recoverPubKey(Buffer.from(hash.slice(2), "hex"), vrs, vrs.v < 2 ? vrs.v : 1 - vrs.v % 2); // because odd vals mean v=0... sadly that means v=0 means v=1... I hate that
+    const ecPublicKey = secp256k1.recoverPubKey(Buffer.from(hash.slice(2), "hex"), vrs,
+                        vrs.v < 2 ? vrs.v : 1 - vrs.v % 2); // because odd vals mean v=0... sadly that means v=0 means v=1... I hate that
     const publicKey = "0x" + ecPublicKey.encode("hex", false).slice(2);
     const publicHash = keccak256(publicKey);
     const address = addressChecksum("0x" + publicHash.slice(-40));
@@ -3484,47 +3448,31 @@ const lib_account = lib(() => {
     signMessage,
     signerAddress,
   };
-  /* WEBPACK VAR INJECTION */}.call(this, lib_buffer().Buffer))
+  /* WEBPACK VAR INJECTION */
+  }.call(this, lib_buffer().Buffer))
   return exports;
 });
 
 const lib_sha_common = lib(() => {
   "use strict";
 
-  let exports = {};
-  const utils = lib_utils();
-  const rotr32 = utils.rotr32;
+  const rotr32 = lib_utils().rotr32;
 
-  function ch32(x, y, z) {
-    return (x & y) ^ ((~x) & z);
-  }
-  exports.ch32 = ch32;
+  const ch32 = (x, y, z) => (x & y) ^ ((~x) & z);
+  const maj32 = (x, y, z) => (x & y) ^ (x & z) ^ (y & z);
+  const s0_256 = (x) => rotr32(x, 2) ^ rotr32(x, 13) ^ rotr32(x, 22);
+  const s1_256 = (x) => rotr32(x, 6) ^ rotr32(x, 11) ^ rotr32(x, 25);
+  const g0_256 = (x) => rotr32(x, 7) ^ rotr32(x, 18) ^ (x >>> 3);
+  const g1_256 = (x) => rotr32(x, 17) ^ rotr32(x, 19) ^ (x >>> 10);
 
-  function maj32(x, y, z) {
-    return (x & y) ^ (x & z) ^ (y & z);
-  }
-  exports.maj32 = maj32;
-
-  function s0_256(x) {
-    return rotr32(x, 2) ^ rotr32(x, 13) ^ rotr32(x, 22);
-  }
-  exports.s0_256 = s0_256;
-
-  function s1_256(x) {
-    return rotr32(x, 6) ^ rotr32(x, 11) ^ rotr32(x, 25);
-  }
-  exports.s1_256 = s1_256;
-
-  function g0_256(x) {
-    return rotr32(x, 7) ^ rotr32(x, 18) ^ (x >>> 3);
-  }
-  exports.g0_256 = g0_256;
-
-  function g1_256(x) {
-    return rotr32(x, 17) ^ rotr32(x, 19) ^ (x >>> 10);
-  }
-  exports.g1_256 = g1_256;
-
+  const exports = {
+    ch32,
+    maj32,
+    s0_256,
+    s1_256,
+    g0_256,
+    g1_256
+  };
   return exports;
 });
 
@@ -3600,10 +3548,7 @@ const lib_sha = lib(() => {
   };
 
   SHA256.prototype._digest = function digest(enc) {
-  if (enc === 'hex')
-    return utils.toHex32(this.h, 'big');
-  else
-    return utils.split32(this.h, 'big');
+    return (enc === 'hex') ? utils.toHex32(this.h, 'big') : utils.split32(this.h, 'big');
   };
 
   return exports;
@@ -3661,21 +3606,12 @@ const lib_curve = lib(() => {
       } else {
         lambda = lambdas[1];
         utils.assert(this.g.mul(lambda).x.cmp(this.g.x.redMul(beta)) === 0);
-        // assert.deepStrictEqual(this.g.mul(lambda).x.cmp(this.g.x.redMul(beta), 0, new Error('Assertion failed'))); //assert(this.g.mul(lambda).x.cmp(this.g.x.redMul(beta)) === 0);
       }
     }
     // Get basis vectors, used for balanced length-two representation
-    let basis;
-    if (conf.basis) {
-      basis = conf.basis.map(function(vec) {
-        return {
-          a: new BN(vec.a, 16),
-          b: new BN(vec.b, 16)
-        };
-      });
-    } else {
-      basis = this._getEndoBasis(lambda);
-    }
+    const basis = (conf.basis)
+                  ? conf.basis.map(vec => ({ a: new BN(vec.a, 16), b: new BN(vec.b, 16)  }))
+                  : this._getEndoBasis(lambda);
 
     return {
       beta: beta,
@@ -3776,10 +3712,8 @@ const lib_curve = lib(() => {
         this.x.forceRed(this.curve.red);
         this.y.forceRed(this.curve.red);
       }
-      if (!this.x.red)
-        this.x = this.x.toRed(this.curve.red);
-      if (!this.y.red)
-        this.y = this.y.toRed(this.curve.red);
+      if (!this.x.red) this.x = this.x.toRed(this.curve.red);
+      if (!this.y.red) this.y = this.y.toRed(this.curve.red);
       this.inf = false;
     }
   }
@@ -3797,15 +3731,12 @@ const lib_curve = lib(() => {
     if (!this.curve.endo) return;
 
     const pre = this.precomputed;
-    if (pre && pre.beta)
-      return pre.beta;
+    if (pre && pre.beta) return pre.beta;
 
-      const beta = this.curve.point(this.x.redMul(this.curve.endo.beta), this.y);
+    const beta = this.curve.point(this.x.redMul(this.curve.endo.beta), this.y);
     if (pre) {
       const curve = this.curve;
-      const endoMul = function(p) {
-        return curve.point(p.x.redMul(curve.endo.beta), p.y);
-      };
+      const endoMul = (p) => curve.point(p.x.redMul(curve.endo.beta), p.y);
       pre.beta = beta;
       beta.precomputed = {
         beta: null,
@@ -3880,23 +3811,23 @@ const lib_curve = lib(() => {
 
   Point.prototype.mul = function mul(k) {
     k = new BN(k, 16);
-    if (this.isInfinity())
-      return this;
-    else if (this._hasDoubles(k))
-      return this.curve._fixedNafMul(this, k);
-    else if (this.curve.endo)
-      return this.curve._endoWnafMulAdd([ this ], [ k ]);
-    else
-      return this.curve._wnafMul(this, k);
+
+    return (this.isInfinity())
+            ? this
+            : (this._hasDoubles(k))
+            ? this.curve._fixedNafMul(this, k)
+            : (this.curve.endo)
+            ? this.curve._endoWnafMulAdd([ this ], [ k ])
+            : this.curve._wnafMul(this, k);
   };
 
   Point.prototype.mulAdd = function mulAdd(k1, p2, k2) {
     const points = [ this, p2 ];
     const coeffs = [ k1, k2 ];
-    if (this.curve.endo)
-      return this.curve._endoWnafMulAdd(points, coeffs);
-    else
-      return this.curve._wnafMulAdd(1, points, coeffs, 2);
+
+    return (this.curve.endo)
+            ? this.curve._endoWnafMulAdd(points, coeffs)
+            : this.curve._wnafMulAdd(1, points, coeffs, 2);
   };
 
   Point.prototype.eq = function eq(p) {
@@ -3992,10 +3923,7 @@ const lib_curve = lib(() => {
     const h = u1.redSub(u2);
     const r = s1.redSub(s2);
     if (h.cmpn(0) === 0) {
-      if (r.cmpn(0) !== 0)
-        return this.curve.jpoint(null, null, null);
-      else
-        return this.dbl();
+      return  (r.cmpn(0) !== 0) ? this.curve.jpoint(null, null, null) : this.dbl();
     }
 
     const h2 = h.redSqr();
@@ -4044,8 +3972,7 @@ const lib_curve = lib(() => {
 
     if (this.curve.zeroA || this.curve.threeA) {
       let r = this;
-      for (let i = 0; i < pow; i++)
-        r = r.dbl();
+      for (let i = 0; i < pow; i++) r = r.dbl();
       return r;
     }
     // 1M + 2S + 1A + N * (4S + 5M + 8A)
@@ -4086,12 +4013,11 @@ const lib_curve = lib(() => {
   JPoint.prototype.dbl = function dbl() {
     if (this.isInfinity()) return this;
 
-    if (this.curve.zeroA)
-      return this._zeroDbl();
-    else if (this.curve.threeA)
-      return this._threeDbl();
-    else
-      return this._dbl();
+     return (this.curve.zeroA)
+            ? this._zeroDbl()
+            : (this.curve.threeA)
+            ?  this._threeDbl()
+            : this._dbl();
   };
 
   JPoint.prototype._zeroDbl = function _zeroDbl() {
@@ -4193,19 +4119,19 @@ const lib_hmac = lib(() => {
   exports = Hmac;
 
   Hmac.prototype._init = function init(key) {
-  // Shorten key, if needed
-  if (key.length > this.blockSize) key = new this.Hash().update(key).digest();
+    // Shorten key, if needed
+    if (key.length > this.blockSize) key = new this.Hash().update(key).digest();
 
-  utils.assert(key.length <= this.blockSize);
-  // Add padding to key
-  for (let i = key.length; i < this.blockSize; i++) key.push(0);
+    utils.assert(key.length <= this.blockSize);
+    // Add padding to key
+    for (let i = key.length; i < this.blockSize; i++) key.push(0);
 
-  for (let i = 0; i < key.length; i++) key[i] ^= 0x36;
-  this.inner = new this.Hash().update(key);
+    for (let i = 0; i < key.length; i++) key[i] ^= 0x36;
+    this.inner = new this.Hash().update(key);
 
-  // 0x36 ^ 0x5c = 0x6a
-  for (let i = 0; i < key.length; i++) key[i] ^= 0x6a;
-  this.outer = new this.Hash().update(key);
+    // 0x36 ^ 0x5c = 0x6a
+    for (let i = 0; i < key.length; i++) key[i] ^= 0x6a;
+    this.outer = new this.Hash().update(key);
   };
 
   Hmac.prototype.update = function update(msg, enc) {
@@ -4265,12 +4191,9 @@ const lib_elliptic_ec = lib(() => {
 
   EC.prototype._truncateToN = function truncateToN(msg, truncOnly) {
     const delta = msg.byteLength() * 8 - this.n.bitLength();
-    if (delta > 0)
-      msg = msg.ushrn(delta);
-    if (!truncOnly && msg.cmp(this.n) >= 0)
-      return msg.sub(this.n);
-    else
-      return msg;
+    if (delta > 0) msg = msg.ushrn(delta);
+
+    return  (!truncOnly && msg.cmp(this.n) >= 0) ? msg.sub(this.n) : msg;
   };
 
   EC.prototype.sign = function sign(msg, key, enc, options) {
@@ -4345,10 +4268,7 @@ const lib_elliptic_ec = lib(() => {
       throw new Error('Unable to find sencond key candinate');
 
     // 1.1. Let x = r + jn.
-    if (isSecondKey)
-      r = this.curve.pointFromX(r.add(this.curve.n), isYOdd);
-    else
-      r = this.curve.pointFromX(r, isYOdd);
+    r = (isSecondKey) ? this.curve.pointFromX(r.add(this.curve.n), isYOdd) : this.curve.pointFromX(r, isYOdd);
 
     const rInv = signature.r.invm(n);
     const s1 = n.sub(e).mul(rInv).umod(n);
