@@ -2359,7 +2359,9 @@ const lib_utils = lib(() => {
 
   let exports = {};
 
+  //lib_assert
   const assert = (val, msg) => !val ? new Error(msg || 'Assertion failed') : undefined;
+
   //lib_bytes
   const length = a => (a.length - 2) / 2;
   const flatten = a => "0x" + a.reduce((r, s) => r + s.slice(2), "");
@@ -2820,7 +2822,7 @@ const lib_keccak = lib(() => {
       }
       if (j % blockCount === 0) {
         f(s);
-        i = 0;
+        // i = 0;
       }
     }
     return "0x" + hex;
@@ -3368,13 +3370,12 @@ const lib_curves = lib(() => {
 });
 
 const lib_hash = lib(() => {
+  let sha; //shuts up closure compiler
   const exports = {
-      utils: lib_utils(),
-      common: lib_hash_common(),
       sha: sha = {sha256: lib_sha()},
       hmac: lib_hmac(),
       sha256: sha.sha256
-  }
+  };
   return exports;
 });
 
@@ -3614,9 +3615,9 @@ const lib_curve = lib(() => {
                   : this._getEndoBasis(lambda);
 
     return {
-      beta: beta,
-      lambda: lambda,
-      basis: basis
+      beta,
+      lambda,
+      basis
     };
   };
 
@@ -4415,9 +4416,7 @@ const lib_keypair = lib(() => {
       enc = compact;
       compact = null;
     }
-
     if (!this.pub) this.pub = this.ec.g.mul(this.priv);
-
     if (!enc) return this.pub;
 
     return this.pub.encode(enc, compact);
